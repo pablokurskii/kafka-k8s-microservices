@@ -1,3 +1,3 @@
-package org.example.customer.controller.dto;
+package org.example.clients.fraud;
 
 public record FraudCheckResponse(Boolean isFraudster) {}
