@@ -1,4 +1,4 @@
-package org.exampe.amqp;
+package org.example.amqp;
 
 import lombok.AllArgsConstructor;
 import org.springframework.amqp.core.AmqpTemplate;
@@ -15,12 +15,12 @@ import org.springframework.context.annotation.Configuration;
 /*Basic setup to send and receive messages from queues*/
 public class RabbitMQConfig {
 
-    private final ConnectionFactory connecitonFactory;
+    private final ConnectionFactory connectionFactory;
 
     /*Allows to send messages to queue*/
     @Bean
     public AmqpTemplate amqpTemplate() {
-        RabbitTemplate rabbitTemplate = new RabbitTemplate(connecitonFactory);
+        RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
         rabbitTemplate.setMessageConverter(jacksonConverter());
         return rabbitTemplate;
     }
@@ -28,19 +28,15 @@ public class RabbitMQConfig {
     /*Allows to receive messages from queue using Jackson converter*/
     @Bean
     public SimpleRabbitListenerContainerFactory simpleRabbitListenerContainerFactory() {
-        var factory = new SimpleRabbitListenerContainerFactory();
-        factory.setConnectionFactory(connecitonFactory);
+        SimpleRabbitListenerContainerFactory factory =
+                new SimpleRabbitListenerContainerFactory();
+        factory.setConnectionFactory(connectionFactory);
         factory.setMessageConverter(jacksonConverter());
         return factory;
     }
 
     @Bean
     public MessageConverter jacksonConverter() {
-        Jackson2JsonMessageConverter messageConverter = new Jackson2JsonMessageConverter();
-        return messageConverter;
+        return new Jackson2JsonMessageConverter();
     }
-
-    /*TODO setup exchange*/
-    /*TODO setup queues*/
-    /*TODO bind exachge to any particular queue*/
 }

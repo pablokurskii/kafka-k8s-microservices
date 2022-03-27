@@ -1,9 +1,9 @@
 package org.example.customer.service;
 
 import lombok.AllArgsConstructor;
+import org.example.amqp.RabbitMQMessageProducer;
 import org.example.clients.fraud.FraudCheckResponse;
 import org.example.clients.fraud.FraudClient;
-import org.example.clients.notification.NotificationClient;
 import org.example.clients.notification.NotificationRequest;
 import org.example.customer.controller.dto.CustomerRegistrationRequest;
 import org.example.customer.entity.Customer;
@@ -16,7 +16,7 @@ public class CustomerService {
     private final CustomerRepository customerRepository;
     /*usage of feign client*/
     private final FraudClient fraudClient;
-    private final NotificationClient notificationClient;
+    private final RabbitMQMessageProducer rabbitMQMessageProducer;
 
     public void registerCustomer(CustomerRegistrationRequest request) {
         Customer customer = Customer.builder()
@@ -33,13 +33,17 @@ public class CustomerService {
         if (fraudCheckResponse != null && fraudCheckResponse.isFraudster()) {
             throw new IllegalStateException("fraudster");
         }
-        notificationClient.sendNotification(
-                new NotificationRequest(
-                        customer.getId(),
-                        customer.getEmail(),
-                        String.format("Hi %s, welcome to Example...",
-                                customer.getFirstName())
-                )
+
+        NotificationRequest notificationRequest = new NotificationRequest(
+                customer.getId(),
+                customer.getEmail(),
+                String.format("Hi %s, welcome to Amigoscode...",
+                        customer.getFirstName())
+        );
+        rabbitMQMessageProducer.publish(
+                notificationRequest,
+                "internal.exchange",
+                "internal.notification.routing-key"
         );
         customerRepository.save(customer);
     }
